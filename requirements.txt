@@ -2,4 +2,11 @@ fastapi==0.104.1
 uvicorn==0.24.0
 openai-whisper==20231117
 torch==2.1.2
-python-multipart==0.0.6 
+python-multipart==0.0.6
+sounddevice==0.4.6
+numpy==1.24.3
+scipy==1.11.4
+pyautogui==0.9.54
+pyperclip==1.8.2
+pynput==1.7.6
+requests==2.31.0 

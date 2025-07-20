@@ -1,14 +1,16 @@
-# VibeBackend - Whisper Transcription Server
+# VibeBackend - Voice Input System with Frontend
 
-A lightweight FastAPI server that provides OpenAI Whisper transcription services for voice input applications, designed specifically for integration with Cursor's voice input feature.
+A complete voice input system consisting of a FastAPI Whisper transcription server and a Tkinter frontend application for voice-controlled macros and text input.
 
 ## Features
 
-- **FastAPI Server**: High-performance async web server
+- **FastAPI Server**: High-performance async web server for transcription
 - **Whisper Integration**: OpenAI Whisper for accurate speech-to-text
 - **GPU Acceleration**: CUDA support for faster transcription
+- **Tkinter Frontend**: Desktop application for voice recording and macro automation
+- **Macro Recording**: Record mouse clicks and keyboard shortcuts for automation
+- **Voice-to-Text**: Real-time voice transcription with automatic text insertion
 - **CORS Support**: Cross-origin requests enabled for web integration
-- **File Upload**: Accepts various audio formats
 - **Error Handling**: Robust error handling and validation
 
 ## Quick Start
@@ -18,6 +20,7 @@ A lightweight FastAPI server that provides OpenAI Whisper transcription services
 - Python 3.8+
 - CUDA-capable GPU (recommended for faster processing)
 - 4GB+ VRAM for optimal performance
+- Microphone access
 
 ### Installation
 
@@ -32,12 +35,31 @@ A lightweight FastAPI server that provides OpenAI Whisper transcription services
    pip install -r requirements.txt
    ```
 
-3. **Run the server:**
+3. **Run the backend server:**
    ```bash
    python main.py
    ```
 
-The server will start on `http://localhost:8000`
+4. **Run the frontend application:**
+   ```bash
+   python frontend.py
+   ```
+
+The server will start on `http://localhost:8000` and the frontend will open as a desktop application.
+
+## System Architecture
+
+### Backend (main.py)
+- **FastAPI Server**: Handles audio file uploads and transcription requests
+- **Whisper Model**: OpenAI's speech recognition model (small variant)
+- **CUDA Acceleration**: GPU-accelerated transcription processing
+- **File Handling**: Temporary file management for audio processing
+
+### Frontend (frontend.py)
+- **Tkinter GUI**: Modern desktop interface with dark theme
+- **Voice Recording**: Real-time audio capture and processing
+- **Macro System**: Record and replay mouse clicks and keyboard shortcuts
+- **Text Automation**: Automatic text insertion via clipboard and macros
 
 ## API Endpoints
 
@@ -68,32 +90,56 @@ GET /
 }
 ```
 
-## How It Works
+## Frontend Usage
 
-### Architecture
+### Recording Macros
+1. Click "Record Macro" to start recording
+2. Perform the actions you want to automate (mouse clicks, Ctrl+V)
+3. Press 'S' to stop recording
+4. The macro will be saved for future use
 
-- **FastAPI**: Modern, fast web framework for building APIs
-- **Whisper Model**: OpenAI's speech recognition model (small variant)
-- **CUDA Acceleration**: GPU-accelerated transcription processing
-- **File Handling**: Temporary file management for audio processing
+### Voice Input
+1. Ensure a macro is recorded
+2. Click "Listen" to start voice recording
+3. Speak your text
+4. Press Space to stop recording
+5. The transcribed text will automatically be inserted using the recorded macro
 
-### Processing Pipeline
-
-1. **File Upload**: Accept audio file via multipart form data
-2. **Temporary Storage**: Save file to temporary location
-3. **Transcription**: Process audio with Whisper model
-4. **Cleanup**: Remove temporary file
-5. **Response**: Return transcribed text
+### Emergency Stop
+Press `Ctrl + Shift + Q` to immediately close the application.
 
 ## File Structure
 
 ```
 vibebackend/
 ├── main.py              # FastAPI server
+├── frontend.py          # Tkinter desktop application
 ├── test_transcribe.py   # Testing script
 ├── requirements.txt     # Python dependencies
 ├── .gitignore          # Git ignore rules
 └── README.md           # This file
+```
+
+## Configuration
+
+### Server Settings
+
+- **Host**: `0.0.0.0` (accessible from any IP)
+- **Port**: `8000` (configurable)
+- **CORS**: Enabled for all origins
+
+### Frontend Settings
+
+- **Server URL**: Configure in `frontend.py` line 21
+- **Emergency Kill**: `Ctrl + Shift + Q` (configurable)
+- **Theme**: Dark theme with purple/blue accent colors
+
+### Whisper Configuration
+
+```python
+# In main.py, modify these settings:
+model = whisper.load_model("small", device="cuda")  # Change model size
+# Available models: "tiny", "base", "small", "medium", "large"
 ```
 
 ## Usage Examples
@@ -135,50 +181,7 @@ const transcribeAudio = async (audioFile) => {
     throw new Error('Transcription failed');
   }
 };
-
-// Usage
-const fileInput = document.getElementById('audioFile');
-fileInput.addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  try {
-    const transcription = await transcribeAudio(file);
-    console.log('Transcription:', transcription);
-  } catch (error) {
-    console.error('Error:', error);
-  }
-});
 ```
-
-### cURL Example
-
-```bash
-curl -X POST "http://localhost:8000/transcribe" \
-     -H "accept: application/json" \
-     -H "Content-Type: multipart/form-data" \
-     -F "file=@audio.wav"
-```
-
-## Configuration
-
-### Server Settings
-
-- **Host**: `0.0.0.0` (accessible from any IP)
-- **Port**: `8000` (configurable)
-- **CORS**: Enabled for all origins
-
-### Whisper Configuration
-
-```python
-# In main.py, modify these settings:
-model = whisper.load_model("small", device="cuda")  # Change model size
-# Available models: "tiny", "base", "small", "medium", "large"
-```
-
-### Customization
-
-- **Model Size**: Change Whisper model for different accuracy/speed trade-offs
-- **Device**: Switch between "cuda" and "cpu" based on hardware
-- **CORS Settings**: Configure allowed origins for production deployment
 
 ## Troubleshooting
 
@@ -189,15 +192,20 @@ model = whisper.load_model("small", device="cuda")  # Change model size
    - Switch to CPU processing: `device="cpu"`
    - Close other GPU applications
 
-2. **File upload errors**:
-   - Check file format (supports: wav, mp3, m4a, flac)
-   - Ensure file size is reasonable (< 100MB)
-   - Verify file is not corrupted
+2. **Frontend connection errors**:
+   - Ensure the backend server is running
+   - Check the SERVER_URL in frontend.py
+   - Verify firewall settings
 
-3. **Slow transcription**:
-   - Use GPU acceleration if available
-   - Consider smaller Whisper model
-   - Process shorter audio files
+3. **Audio recording issues**:
+   - Check microphone permissions
+   - Ensure audio drivers are installed
+   - Test with different audio devices
+
+4. **Macro playback problems**:
+   - Ensure target applications are in focus
+   - Check if applications block automation
+   - Verify screen resolution hasn't changed
 
 ### Performance Tips
 
@@ -207,13 +215,17 @@ model = whisper.load_model("small", device="cuda")  # Change model size
   - `base`: Good balance
   - `small`: Better accuracy (default)
   - `medium/large`: Best accuracy, slowest
-- **Batch Processing**: Process multiple files sequentially
+- **Audio Quality**: Use good microphone for better transcription accuracy
 
 ## Deployment
 
 ### Development
 ```bash
+# Terminal 1: Backend
 python main.py
+
+# Terminal 2: Frontend
+python frontend.py
 ```
 
 ### Production with Uvicorn
@@ -246,35 +258,20 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
 - **File Validation**: Validate file types and sizes
 - **HTTPS**: Use SSL/TLS encryption
 
-### Example Security Configuration
+### Frontend Security
 
-```python
-from fastapi import FastAPI, Depends, HTTPException
-from fastapi.security import APIKeyHeader
-
-API_KEY_HEADER = APIKeyHeader(name="X-API-Key")
-
-def verify_api_key(api_key: str = Depends(API_KEY_HEADER)):
-    if api_key != "your-secret-key":
-        raise HTTPException(status_code=403, detail="Invalid API key")
-    return api_key
-
-@app.post("/transcribe")
-async def transcribe_audio(
-    file: UploadFile = File(...),
-    api_key: str = Depends(verify_api_key)
-):
-    # ... transcription logic
-```
+- **Local Access**: Frontend only connects to localhost by default
+- **No Data Storage**: No sensitive data is stored locally
+- **Emergency Stop**: Built-in kill switch for security
 
 ## Testing
 
-### Run Test Script
+### Backend Testing
 ```bash
 python test_transcribe.py
 ```
 
-### Manual Testing
+### Frontend Testing
 ```bash
 # Test with curl
 curl -X POST "http://localhost:8000/transcribe" \
@@ -300,6 +297,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 - [OpenAI Whisper](https://github.com/openai/whisper) for speech recognition
 - [FastAPI](https://fastapi.tiangolo.com/) for the web framework
+- [Tkinter](https://docs.python.org/3/library/tkinter.html) for the GUI
 - [Cursor](https://cursor.sh/) for the voice input inspiration
 
 ## Future Enhancements
@@ -311,4 +309,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - [ ] Model fine-tuning support
 - [ ] WebSocket support for live transcription
 - [ ] Audio format conversion
-- [ ] Transcription confidence scores 
+- [ ] Transcription confidence scores
+- [ ] Custom macro file format
+- [ ] Cloud synchronization
+- [ ] Voice command recognition 
